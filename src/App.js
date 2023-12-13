@@ -10,8 +10,8 @@ const App = () => {
       setCurrentNumber(prev => `${prev === '0' ? '' : prev}${num}`) 
     }else{
       if(num === ","){
-        let lastComma = 0
-        let lastOperationChar = 0
+        let lastComma = null
+        let lastOperationChar = null
         for(let i = 0; i < currentNumber.length; i++){
           if(currentNumber[i] === ","){
             lastComma = i
@@ -19,10 +19,26 @@ const App = () => {
             lastOperationChar = i
           }
         }
-        console.log(lastOperationChar)
-        console.log(lastComma)
-        if(lastOperationChar >= lastComma && currentNumber.length == 0 ? lastOperationChar != (currentNumber.length - 1) : true){
-          setCurrentNumber(prev => `${isNaN(prev[prev.length - 1]) ? prev.substring(0, prev.length - 1) + num : prev + num}`) 
+        if(lastOperationChar >= lastComma){
+          if(currentNumber.length - 1 != lastOperationChar){
+            setCurrentNumber(prev => `${isNaN(prev[prev.length - 1]) ? prev.substring(0, prev.length - 1) + num : prev + num}`) 
+          }else{
+            let previusOperationChar = null
+            let previusComma = null
+            for(let i = currentNumber.length - 1; i >= 0; i--){
+              if((isNaN(Number(currentNumber[i])))){
+                if(currentNumber[i] == ","){
+                  previusComma = i
+                  break
+                }else if(i != currentNumber.length - 1){
+                  previusOperationChar = i
+                }
+              }
+            }
+            if(previusOperationChar >= previusComma){
+              setCurrentNumber(prev => `${isNaN(prev[prev.length - 1]) ? prev.substring(0, prev.length - 1) + num : prev + num}`) 
+            }
+          }
         }
       }else{
         setCurrentNumber(prev => `${isNaN(prev[prev.length - 1]) ? prev.substring(0, prev.length - 1) + num : prev + num}`) 
@@ -35,7 +51,20 @@ const App = () => {
   }
 
   const handleOnCalculate = () => {
-    console.log(currentNumber)
+    let formatedExpression = currentNumber.replace(/,/g, '.').replace(/×|÷/g, (match) => {
+      return match === '×' ? '*' : '/';
+    });
+    let operation = false
+    for(let i = formatedExpression.length - 1; i >= 0; i--){
+      if(isNaN(Number(formatedExpression[i])) && formatedExpression[i] != ","){
+        operation = true
+      }
+    }
+    if(operation){  
+      const result = String(eval(formatedExpression))
+      const formatedString = result.replace(/\./g, ',');
+      setCurrentNumber(formatedString) 
+    }
   }
 
   return (
@@ -45,7 +74,7 @@ const App = () => {
         <Row>
           <Button label=" "/>
           <Button label="C" onClick={handleOnClear}/>
-          <Button label="%" onClick={() => handleAddNumber('%')}/>
+          <Button label=" "/>
           <Button label="÷" onClick={() => handleAddNumber('÷')}/>
         </Row>
         <Row>
